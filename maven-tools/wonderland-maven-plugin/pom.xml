@@ -1,0 +1,43 @@
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <parent>
+        <groupId>org.jdesktop.wonderland.modules</groupId>
+        <artifactId>wonderland-maven-tools</artifactId>
+        <version>0.5-SNAPSHOT</version>
+    </parent>
+
+    <groupId>org.jdesktop.wonderland.modules.maven</groupId>
+    <artifactId>wonderland-maven-plugin</artifactId>
+    <packaging>maven-plugin</packaging>
+    <version>0.5-SNAPSHOT</version>
+    <name>wonderland-maven-plugin Maven Mojo</name>
+    <url>http://maven.apache.org</url>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+            <version>2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-project</artifactId>
+            <version>2.0</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-plugin</artifactId>
+                <configuration>
+                    <goalPrefix>wonderland</goalPrefix>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

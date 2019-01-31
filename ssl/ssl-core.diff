@@ -1,0 +1,157 @@
+Index: modules/tools/darkstar/src/classes/org/jdesktop/wonderland/modules/darkstar/server/DarkstarRunnerImpl.java
+===================================================================
+--- modules/tools/darkstar/src/classes/org/jdesktop/wonderland/modules/darkstar/server/DarkstarRunnerImpl.java	(revision 4585)
++++ modules/tools/darkstar/src/classes/org/jdesktop/wonderland/modules/darkstar/server/DarkstarRunnerImpl.java	(working copy)
+@@ -129,6 +129,9 @@
+     /** the webserver URL to link back to */
+     private String webserverURL;
+ 
++    /** the secure webserver URL */
++    private String webserverSecureURL;
++
+     /** the sgs port.  Only valid when starting up or running */
+     private int currentPort;
+ 
+@@ -174,6 +177,9 @@
+         // record the webserver URL
+         webserverURL = props.getProperty("wonderland.web.server.url");
+ 
++        // record the webserver secure URL
++        webserverSecureURL = props.getProperty("wonderland.web.server.url.secure");
++
+         // attempt to restore the WFS URL or use the default name
+         try {
+             File wfsFile = new File(getBaseDir(), SELECTED_WFS_FILE);
+@@ -218,6 +224,7 @@
+         Properties props = new Properties();
+         props.setProperty("sgs.port", String.valueOf(DEFAULT_PORT));
+         props.setProperty("wonderland.web.server.url", webserverURL);
++        props.setProperty("wonderland.authentication.url", webserverSecureURL);
+         return props;
+     }
+ 
+Index: core/src/classes/org/jdesktop/wonderland/common/login/AuthenticationServiceImpl.java
+===================================================================
+--- core/src/classes/org/jdesktop/wonderland/common/login/AuthenticationServiceImpl.java	(revision 4585)
++++ core/src/classes/org/jdesktop/wonderland/common/login/AuthenticationServiceImpl.java	(working copy)
+@@ -146,9 +146,12 @@
+             URL u = new URL(getAuthenticationURL() + "/getCookieNameForToken");
+             HttpURLConnection uc = (HttpURLConnection) u.openConnection();
+             uc.setDoInput(true);
+-
+-            logger.fine("GetCookieName response: " + uc.getResponseCode() +
++            
++            logger.warning("GetCookieName response: " + uc.getResponseCode() +
+                         " : " + uc.getResponseMessage());
++            if (uc.getResponseCode() == HttpURLConnection.HTTP_MOVED_TEMP) {
++                logger.warning(u + " moved to " + uc.getHeaderField("Location"));
++            }
+ 
+             BufferedReader br = new BufferedReader(new InputStreamReader(uc.getInputStream()));
+             String line;
+Index: web/utils/src/classes/org/jdesktop/wonderland/utils/Constants.java
+===================================================================
+--- web/utils/src/classes/org/jdesktop/wonderland/utils/Constants.java	(revision 4585)
++++ web/utils/src/classes/org/jdesktop/wonderland/utils/Constants.java	(working copy)
+@@ -61,7 +61,15 @@
+     /** the full internal URL of the web server */
+     public static final String WEBSERVER_URL_INTERNAL_PROP  = "wonderland.web.server.url.internal";
+ 
++    /** the port to run the webserver SSL connection on */
++    public static final String WEBSERVER_SECURE_PORT_PROP = "wonderland.webserver.port.secure";
+ 
++    /** the secure URL of the web server */
++    public static final String WEBSERVER_SECURE_URL_PROP  = "wonderland.web.server.url.secure";
++
++    /** the secure URL of the web server */
++    public static final String WEBSERVER_SECURE_URL_INTERNAL_PROP  = "wonderland.web.server.url.internal.secure";
++
+     /** whether or not we should overwrite data */
+     public static final String WEBSERVER_NEWVERSION_PROP = "wonderland.webserver.newversion";
+ 
+Index: web/server/src/classes/org/jdesktop/wonderland/webserver/launcher/WebServerLauncher.java
+===================================================================
+--- web/server/src/classes/org/jdesktop/wonderland/webserver/launcher/WebServerLauncher.java	(revision 4585)
++++ web/server/src/classes/org/jdesktop/wonderland/webserver/launcher/WebServerLauncher.java	(working copy)
+@@ -170,6 +170,9 @@
+         if (System.getProperty(Constants.WEBSERVER_PORT_PROP) == null) {
+             System.setProperty(Constants.WEBSERVER_PORT_PROP, "8080");
+         }
++        if (System.getProperty(Constants.WEBSERVER_SECURE_PORT_PROP) == null) {
++            System.setProperty(Constants.WEBSERVER_SECURE_PORT_PROP, "8181");
++        }
+ 
+         // start the killswitch
+         String killSwitchStr =
+Index: web/server/src/classes/org/jdesktop/wonderland/webserver/WonderlandAppServer.java
+===================================================================
+--- web/server/src/classes/org/jdesktop/wonderland/webserver/WonderlandAppServer.java	(revision 4585)
++++ web/server/src/classes/org/jdesktop/wonderland/webserver/WonderlandAppServer.java	(working copy)
+@@ -35,6 +35,9 @@
+ import java.util.jar.Manifest;
+ import java.util.logging.Level;
+ import java.util.logging.Logger;
++import org.glassfish.api.ActionReport;
++import org.glassfish.api.admin.CommandRunner;
++import org.glassfish.api.admin.ParameterMap;
+ import org.glassfish.api.deployment.DeployCommandParameters;
+ import org.glassfish.api.deployment.archive.ReadableArchive;
+ import org.glassfish.api.embedded.EmbeddedDeployer;
+@@ -108,6 +111,20 @@
+         return server.getDeployer();
+     }
+ 
++    public void startSSL(int port) {
++        String command = "create-http-listener";
++        ParameterMap params = new ParameterMap();
++        params.add("listeneraddress", "0.0.0.0");
++        params.add("listenerport", String.valueOf(port));
++        params.add("defaultvs", "server");
++        params.add("securityenabled", "true");
++        params.add("enabled", "true");
++        params.add("DEFAULT", "http-listener2");
++        CommandRunner runner = server.getHabitat().getComponent(CommandRunner.class);
++        ActionReport report = server.getHabitat().getComponent(ActionReport.class);
++        runner.getCommandInvocation(command, report).parameters(params).execute();
++    }
++
+     static class ClasspathModuleDefinition implements ModuleDefinition {
+ 
+         private static final String[] EMPTY_STRING_ARR = new String[0];
+Index: web/server/src/classes/org/jdesktop/wonderland/webserver/RunAppServer.java
+===================================================================
+--- web/server/src/classes/org/jdesktop/wonderland/webserver/RunAppServer.java	(revision 4585)
++++ web/server/src/classes/org/jdesktop/wonderland/webserver/RunAppServer.java	(working copy)
+@@ -111,6 +111,13 @@
+         try {
+             createAppServer();
+             getAppServer().start();
++
++
++            // start SSL on the secure port
++            String securePortStr =
++                    System.getProperty(Constants.WEBSERVER_SECURE_PORT_PROP).trim();
++            int securePort = Integer.parseInt(securePortStr);
++            getAppServer().startSSL(securePort);
+         } catch (LifecycleException le) {
+             throw new IOException(le);
+         }
+@@ -196,6 +203,18 @@
+                 ":" + System.getProperty(Constants.WEBSERVER_PORT_PROP).trim() + "/");
+         }
+ 
++        if (System.getProperty(Constants.WEBSERVER_SECURE_URL_PROP) == null) {
++            System.setProperty(Constants.WEBSERVER_SECURE_URL_PROP,
++                "https://" + System.getProperty(Constants.WEBSERVER_HOST_PROP).trim() +
++                ":" + System.getProperty(Constants.WEBSERVER_SECURE_PORT_PROP).trim() + "/");
++        }
++
++        if (System.getProperty(Constants.WEBSERVER_SECURE_URL_INTERNAL_PROP) == null) {
++            System.setProperty(Constants.WEBSERVER_SECURE_URL_INTERNAL_PROP,
++                "https://" + System.getProperty(Constants.WEBSERVER_HOST_INTERNAL_PROP).trim() +
++                ":" + System.getProperty(Constants.WEBSERVER_SECURE_PORT_PROP).trim() + "/");
++        }
++
+         // make sure we load all libraries in the embedded Glassfish instance
+         System.setProperty("org.glassfish.embed.Server.IncludeAllLibs", "true");
+ 

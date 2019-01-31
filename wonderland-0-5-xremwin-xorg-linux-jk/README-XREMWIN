@@ -1,0 +1,49 @@
+
+README for Wonderland Xremwin source code
+Wonderland Release 0.5
+Linux version Build 3
+Thu Nov 19 17:23:51 PDT 2009
+
+This is the source code for the Xremwin server for Wonderland for
+Release 0.5. This is a version of the Xorg server (based on Xvfb)
+which provides information on windows to the Wonderland client, using
+a protocol called Xremwin.  Xremwin is similar the remote protocol
+used by VNC. The main difference is that it has been extended to
+support the transmission of data about multiple individual windows
+rather than the entire desktop.
+
+This code is based on Xorg 7.3, but it can probably be easily ported
+to newer versions of Xorg as they come along.
+
+1. Creating the code base
+
+First bring over an Xorg source tree from the X.org git repository or using 
+tarballs. Refer to the Xorg developer instructions on freedesktop.org for
+details on how to do this.
+
+Next, take the code from the end of dix/events.c starting with "#define REMWIN"
+and add it to the end of your dix/events.c.
+
+Next, take the code fragments between "#ifdef REMWIN" and "#endif /* REMWIN */"
+from the files hw/vfb/{InitInput.c,InitOutput.c,lk201kbd.h} and apply them
+to the equivalent places to the Xorg copies of these files.
+
+2. Configure the build
+
+This package includes an updated Makefile.in for the hw/vfb directory. For Xorg
+7.3, you should be able to replace the Makefile.in from the distribution with
+the provided file, and re-run configure to generate an updated Makefile.
+
+In addition, you will need to modify the Makefile in the dix directory to
+include the -DREMWIN as a compile flag.
+
+3. Building the code base
+
+Build the codebase normally using "make".  The Wonderland Xvfb executable will be 
+generated in the hw/vfb directory.  To use this executable in Wonderland, replace
+the version in
+~/.wonderland-server/<version>/run/shared_app_server/run/bin/<platform>/Xvfb-xremwin
+with an updated version.  To package, include the updated file in the Wonderland
+source file
+wonderland/modules/foundation/sasxremwin/lib/zip/xremwin.zip 
+

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <parent>
+        <groupId>org.jdesktop.wonderland</groupId>
+        <artifactId>wonderland-common</artifactId>
+        <version>0.5-SNAPSHOT</version>
+    </parent>
+    
+    <groupId>org.jdesktop.wonderland.ext</groupId>
+    <artifactId>wonderland-jme-packager</artifactId>
+    <packaging>pom</packaging>
+    <version>2.0-wonderland-SNAPSHOT</version>
+    <name>wonderland-jme-packager</name>
+
+    <properties>
+        <wonderland.dir>${basedir}/../../../../../../wonderland</wonderland.dir>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>jme</module>
+                <module>jme-audio</module>
+                <module>jme-awt</module>
+                <module>jme-collada</module>
+                <module>jme-editors</module>
+                <module>jme-effects</module>
+                <module>jme-font</module>
+                <module>jme-gamestates</module>
+                <module>jme-model</module>
+                <module>jme-scene</module>
+                <module>jme-terrain</module>
+                <module>jme-xml</module>
+            </modules>
+        </profile>
+    </profiles>
+</project>

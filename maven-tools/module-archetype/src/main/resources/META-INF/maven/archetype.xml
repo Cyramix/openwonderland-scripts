@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?><archetype>
+  <id>wonderland-module</id>
+  <resources>
+    <resource>client/pom.xml</resource>
+    <resource>common/pom.xml</resource>
+    <resource>server/pom.xml</resource>
+  </resources>
+
+  <sources>
+    <source>client/src/main/java/__name__Cell.java</source>
+  </sources>
+</archetype>

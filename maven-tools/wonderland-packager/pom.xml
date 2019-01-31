@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <groupId>org.jdesktop.wonderland</groupId>
+    <artifactId>wonderland-packager</artifactId>
+    <packaging>pom</packaging>
+    <version>0.5-SNAPSHOT</version>
+    <name>wonderland-maven-packager</name>
+
+    <distributionManagement>
+        <repository>
+            <id>local-repository</id>
+            <url>file:///Users/jkaplan/mvn/localrepo</url>
+        </repository>
+    </distributionManagement>
+
+
+    <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>common</module>
+                <module>common-jar</module>
+                <module>client</module>
+                <module>server</module>
+                <module>jme</module>
+                <module>mtgame</module>
+                <module>web</module>
+            </modules>
+        </profile>
+    </profiles>
+
+    <build>
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-file</artifactId>
+                <version>1.0-beta-5</version>
+            </extension>
+        </extensions>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>local-repository</id>
+            <name>Local repository</name>
+            <url>file:///Users/jkaplan/mvn/localrepo</url>
+            <layout>default</layout>
+        </repository>
+    </repositories>
+</project>

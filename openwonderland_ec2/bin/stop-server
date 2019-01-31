@@ -1,0 +1,41 @@
+#!/bin/bash -f
+if [ -x /usr/bin/ec2-metadata ]; then
+    PUBLIC_ADDR=`ec2-metadata -v | awk '{ print $2 }'`
+else
+    PUBLIC_ADDR=$PRIVATE_ADDR
+fi
+KILL_ATTEMPTS_MAX=5
+KILL_WAIT=3
+kill_attempts=0
+
+function has_process {
+    pid=`ps ax | grep $1 | grep -v grep | awk '{ print $1 }'`
+    if [ "$pid" == "" ]; then
+	echo ""
+	return 0
+    else
+	echo $pid
+	return 1
+    fi
+}
+
+function kill_process {
+    local proc=$1
+    echo kill_process $proc
+    wpid=$(has_process $proc)
+    while [ $(has_process $proc) ]; do
+	if [ $kill_attempts -lt $KILL_ATTEMPTS_MAX ]; then
+	    kill $wpid
+        else
+	    kill -9 $wpid	
+        fi
+  	kill_attempts=$((kill_attempts+1))
+	sleep $KILL_WAIT
+    done
+}
+
+process=Wonderland.jar
+
+kill_process $process
+kill_process Xvfb
+kill_process Xvfb-xremwin

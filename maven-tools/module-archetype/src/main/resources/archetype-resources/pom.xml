@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- inherit general settings from wonderland-common module -->
+    <parent>
+        <groupId>org.jdesktop.wonderland</groupId>
+        <artifactId>wonderland-common</artifactId>
+        <version>0.5-SNAPSHOT</version>
+    </parent>
+
+    <groupId>${groupId}</groupId>
+    <artifactId>${artifactId}</artifactId>
+    <packaging>pom</packaging>
+    <version>${version}</version>
+    <name>${name}</name>
+
+    <properties>
+        <wonderland.web.url>http://localhost:8080/</wonderland.web.url>
+        <deploy.module>false</deploy.module>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>client</module>
+                <module>common</module>
+                <module>server</module>
+                <module>packager</module>
+            </modules>
+        </profile>
+    </profiles>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jdesktop.wonderland</groupId>
+            <artifactId>wonderland-common-jar</artifactId>
+            <version>${wonderland.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+</project>

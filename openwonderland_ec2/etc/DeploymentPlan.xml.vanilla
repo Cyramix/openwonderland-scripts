@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DeploymentPlan>
+    <entry>
+        <location>localhost</location>
+        <runnerClass>org.jdesktop.wonderland.webserver.WebServerRunner</runnerClass>
+        <runnerName>Web Administration Server</runnerName>
+    </entry>
+    <entry>
+        <location>localhost</location>
+        <property>
+            <key>wonderland.web.server.url</key>
+            <value>http://PRIVATE_ADDR:8080/</value>
+        </property>
+        <property>
+            <key>sgs.password.file</key>
+            <value>HOME/etc/wonderland.password</value>
+        </property>
+        <runnerClass>org.jdesktop.wonderland.modules.darkstar.server.DarkstarRunnerImpl</runnerClass>
+        <runnerName>Darkstar Server</runnerName>
+    </entry>
+    <entry>
+        <location>localhost</location>
+        <property>
+            <key>wonderland.web.server.url</key>
+            <value>http://PRIVATE_ADDR:8080/</value>
+        </property>
+        <property>
+            <key>sas.password.file</key>
+            <value>HOME/etc/wonderland.password</value>
+        </property>
+        <property>
+            <key>wonderland.appshare.hostName</key>
+            <value>PUBLIC_ADDR</value>
+        </property>
+        <property>
+            <key>wonderland.appshare.minPort</key>
+            <value>10300</value>
+        </property>
+        <property>
+            <key>wonderland.appshare.maxPort</key>
+            <value>10400</value>
+        </property>
+        <runnerClass>org.jdesktop.wonderland.modules.sasxremwin.weblib.SasProviderRunnerImpl</runnerClass>
+        <runnerName>Shared Application Server</runnerName>
+    </entry>
+    <entry>
+        <location>localhost</location>
+        <property>
+            <key>wonderland.web.server.url</key>
+            <value>http://PRIVATE_ADDR:8080/</value>
+        </property>
+        <property>
+            <key>voicebridge.password.file</key>
+            <value>HOME/etc/wonderland.password</value>
+        </property>
+        <property>
+            <key>voicebridge.status.listeners</key>
+            <value>PRIVATE_ADDR:6668</value>
+        </property>
+        <property>
+            <key>voicebridge.webserver.url</key>
+            <value>http://PRIVATE_ADDR:8080/</value>
+        </property>
+        <property>
+            <key>voicebridge.first.rtp.port</key>
+            <value>10000</value>
+        </property>
+        <property>
+            <key>voicebridge.last.rtp.port</key>
+            <value>10200</value>
+        </property>
+        <property>
+            <key>voicebridge.server.public.sip.port</key>
+            <value>5060</value>
+        </property>
+        <property>
+            <key>voicebridge.server.public.address</key>
+            <value>PUBLIC_ADDR</value>
+        </property>
+        <property>
+            <key>voicebridge.local.hostAddress</key>
+            <value>PRIVATE_ADDR</value>
+        </property>
+        <runnerClass>org.jdesktop.wonderland.modules.voicebridge.server.VoicebridgeRunner</runnerClass>
+        <runnerName>Voice Bridge</runnerName>
+    </entry>
+</DeploymentPlan>

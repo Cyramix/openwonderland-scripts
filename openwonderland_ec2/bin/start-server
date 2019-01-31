@@ -1,0 +1,84 @@
+#!/bin/bash
+RELEASE=0.5-dev
+WONDERLAND_DIR=$HOME/$RELEASE/wonderland
+CONFIG_DIR=$HOME/etc
+LOG_DIR=$HOME/logs
+WONDERLANDSERVER_DIR=$HOME/.wonderland-server
+MYRUNPROPERTIES=$WONDERLAND_DIR/my.run.properties
+DEPLOYMENTPLAN=$WONDERLANDSERVER_DIR/$RELEASE/DeploymentPlan.xml
+NEW="y"
+REBUILD="y"
+
+# determine the current IP addresses
+
+PRIVATE_ADDR=`ifconfig  | grep 'inet addr:'| grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}'`
+if [ -x /usr/bin/ec2metadata ]; then
+    PUBLIC_ADDR=`ec2metadata --public-ip`
+else
+    PUBLIC_ADDR=$PRIVATE_ADDR
+fi
+
+echo private address is $PRIVATE_ADDR
+echo public address is $PUBLIC_ADDR
+
+# setup or reconfigure the server directory
+if [ -d $WONDERLANDSERVER_DIR ]; then
+    # find the current IP address in my.run.properties
+    grep -q $PUBLIC_ADDR $MYRUNPROPERTIES
+    if [ $? -eq 0 ]; then
+        # if the IP hasn't changed, ask if the user want to force
+        # a cold start
+        NEW="n" 
+        echo -n "Delete Wonderland state? [no]: "
+        read NEW
+    fi
+
+    if [ "$NEW" == "y" -o "$NEW" == "yes" ]; then
+	rm -rf $WONDERLANDSERVER_DIR/$RELEASE/run/darkstar_server/run/core/data
+    fi
+else
+    # install template .wonderland-server directory with
+    # vanilla DeploymentPlan.xml
+    mkdir -p $WONDERLANDSERVER_DIR/$RELEASE
+fi
+
+if [ -f $MYRUNPROPERTIES ]; then
+    cp $MYRUNPROPERTIES $MYRUNPROPERTIES.prev
+fi
+
+sed -e s/PUBLIC_ADDR/$PUBLIC_ADDR/g -e s/PRIVATE_ADDR/$PRIVATE_ADDR/g -e "s|HOME|$HOME|g" < $CONFIG_DIR/my.run.properties.vanilla > $MYRUNPROPERTIES
+
+# configure voice bridge properties with correct IP addresses
+
+sed -e s/PUBLIC_ADDR/$PUBLIC_ADDR/g -e s/PRIVATE_ADDR/$PRIVATE_ADDR/g -e "s|HOME|$HOME|g" < $CONFIG_DIR/DeploymentPlan.xml.vanilla > $DEPLOYMENTPLAN
+
+# rotate log files
+if [ ! -d $LOG_DIR ]; then
+    mkdir $LOG_DIR
+fi
+DATE=`date | sed -e 's/ /_/g'`
+WONDERLAND_LOG=$LOG_DIR/server.log
+rm -f $WONDERLAND_LOG
+touch $WONDERLAND_LOG.$DATE
+ln -s $WONDERLAND_LOG.$DATE $WONDERLAND_LOG
+
+# start Wonderland server
+
+if [ -f $WONDERLAND_DIR/dist/Wonderland.jar ]; then
+    REBUILD="n"
+    echo -n "Rebuild Wonderland? [no]: "
+    read REBUILD
+fi
+
+pushd $WONDERLAND_DIR > /dev/null
+
+if [ "$REBUILD" == "y" -o "$REBUILD" == "yes" ]; then
+    echo "Rebuilding Wonderland server..."
+    nohup ant run-server >> $WONDERLAND_LOG &
+else
+    echo "Starting Wonderland server..."
+    nohup java -jar dist/Wonderland.jar my.run.properties >> $WONDERLAND_LOG &
+fi
+
+echo "Wonderland server log is: $WONDERLAND_LOG"
+echo "Server is http://$PUBLIC_ADDR:8080"

@@ -1,0 +1,85 @@
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>${groupId}</groupId>
+        <artifactId>${artifactId}</artifactId>
+        <version>${version}</version>
+    </parent>
+
+    <groupId>${groupId}</groupId>
+    <artifactId>${artifactId}-client</artifactId>
+    <packaging>jar</packaging>
+    <name>${name} Client</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jdesktop.wonderland</groupId>
+            <artifactId>wonderland-client</artifactId>
+            <version>${wonderland.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jdesktop.wonderland.modules</groupId>
+            <artifactId>archetype-test-modules-common</artifactId>
+            <version>${version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/module/client</outputDirectory>
+                            <overWriteReleases>false</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                            <excludeTransitive>false</excludeTransitive>
+                            <excludeScope>provided</excludeScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <finalName>ArchetypeModule-client</finalName>
+                    <outputDirectory>${project.build.directory}/module/client</outputDirectory>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jdesktop.wonderland</groupId>
+            <artifactId>wonderland-client</artifactId>
+            <version>${wonderland.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jdesktop.wonderland.modules</groupId>
+            <artifactId>archetype-test-modules-common</artifactId>
+            <version>${version}</version>
+        </dependency>
+    </dependencies>
+</project>

@@ -1,0 +1,153 @@
+#!/bin/bash
+
+RELEASE=0.5-dev
+LINUX_RELEASE=`grep DISTRIB_CODENAME /etc/lsb-release | awk -F = '{print $2}'`
+WONDERLAND_DIR=$HOME/$RELEASE/wonderland
+WONDERLANDSERVERDIR=$HOME/.wonderland-server
+MYRUNPROPERTIES=$WONDERLAND_DIR/my.run.properties
+DEPLOYMENTPLAN=$WONDERLANDSERVERDIR/$RELEASE/DeploymentPlan.xml
+LOGFILE=$HOME/pkg-install.log
+
+JAVA='openjdk-6-jdk'
+
+BUILD_UTILITIES='
+subversion 
+ant 
+zip 
+unzip'
+
+REQUIRED_X11_PKGS='
+x11-common 
+x11-apps 
+x11-session-utils 
+x11-utils 
+xfonts-75dpi 
+xfonts-100dpi 
+xfonts-base'
+
+DESIRED_APPS='
+firefox 
+openoffice.org'
+
+function has_package {
+    dpkg-query -W -f '${Status}' $1 |& grep -v 'No packages found' | grep -c ' installed'
+}
+
+function install_packages {
+    for pkg in $*
+    do
+        if [ "$(has_package $pkg)" == "0" ]; then
+            echo \- installing $pkg...
+            sudo apt-get install -y -q $pkg >> $LOGFILE
+        fi
+    done
+}
+
+function install_wonderland {
+    if [ -d $WONDERLAND_DIR ]; then
+        echo updating wonderland source to latest version...
+        pushd $WONDERLAND_DIR > /dev/null
+        svn update
+        popd > /dev/null
+    else 
+        mkdir -p $HOME/$RELEASE
+        pushd $HOME/$RELEASE > /dev/null
+        echo -n checking out wonderland source...
+	svn checkout http://openwonderland.googlecode.com/svn/trunk wonderland > /dev/null
+        echo done 
+        popd > /dev/null
+        echo -n configuring wonderland
+        pushd $HOME/$RELEASE/wonderland
+        patch -p0 < $HOME/config/wonderland.diff 
+        echo done
+        popd > /dev/null
+    fi
+}
+
+function install_wonderland_modules {
+    if [ -d $HOME/$RELEASE/wonderland-modules ]; then
+        echo updating wonderland-modules source to latest version...
+        pushd $HOME/$RELEASE/wonderland-modules > /dev/null
+        svn update
+    else 
+        mkdir -p $HOME/$RELEASE
+        pushd $HOME/$RELEASE > /dev/null
+        echo -n checking out wonderland-modules source...
+        svn checkout http://openwonderland-modules.googlecode.com/svn/trunk/0.5 wonderland-modules > /dev/null
+	echo done
+        echo -n configuring wonderland-modules
+        pushd $HOME/$RELEASE/wonderland-modules
+        patch -p0 < $HOME/config/wonderland-modules.diff
+        echo done
+        popd > /dev/null
+
+    fi
+    popd > /dev/null
+}
+
+function install_wonderland_video {
+    if [ -d $HOME/$RELEASE/wonderland-video ]; then
+        echo updating wonderland-video source to latest version...
+        pushd $HOME/$RELEASE/wonderland-video > /dev/null
+        svn update
+    else
+        mkdir -p $HOME/$RELEASE
+        pushd $HOME/$RELEASE > /dev/null
+        echo -n checking out wonderland-video source...
+        svn checkout http://openwonderland-video.googlecode.com/svn/trunk wonderland-video > /dev/null
+        echo done
+    fi
+    popd > /dev/null
+}
+
+function update_bashrc {
+    if [ "`grep -c ANT_OPTS $HOME/.bashrc`" -eq "0" ]; then
+	echo '
+export ANT_OPTS="-XX:MaxPermSize=900m"' >> $HOME/.bashrc
+    fi
+}
+
+echo Setting up Wonderland server...
+
+#
+# install Java 6 JDK
+#
+install_packages $JAVA
+
+#
+# install build utilities
+#
+install_packages $BUILD_UTILITIES
+
+#
+# install X11 core packages for Wonderland Shared App Server
+#
+install_packages $REQUIRED_X11_PKGS
+
+#
+# install useful X11 applications
+#
+install_packages $DESIRED_APPS
+
+#
+# update path and environment variables
+#
+update_bashrc
+
+#
+# install Wonderland source
+#
+install_wonderland
+
+#
+# install Wonderland modules
+#
+install_wonderland_modules
+
+
+#
+# install Wonderland video
+#
+install_wonderland_video
+
+chown -R -f `id -u -n`:`id -g -n` $HOME/$RELEASE $WONDERLANDSERVERDIR
